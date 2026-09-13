@@ -1,15 +1,27 @@
 name: CD
+
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+
 jobs:
   deploy:
+    name: Deploy to Production
     runs-on: ubuntu-latest
+    environment:
+      name: production
     steps:
-      - uses: appleboy/ssh-action@v1
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          script: cd /opt/myapp && git pull && docker compose up -d --build
-          
+          script: |
+            cd /opt/myapp
+            docker compose pull
+            docker compose up -d
