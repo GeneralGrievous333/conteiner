@@ -1,0 +1,6 @@
+services:
+ conteiner:
+  build: .
+  image: conteiner:local
+  container_name: myapp-conteiner
+  restart: "no"
