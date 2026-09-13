@@ -1,0 +1,22 @@
+﻿===== C:\Users\Grievous\source\repos\conteiner\conteiner\conteiner.csproj =====
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
+===== C:\Users\Grievous\source\repos\conteiner\conteiner\Program.cs =====
+public struct PointStruct { public int X; public int Y;  }
+class PointClass { public int X; public int Y;}
+class Programm
+{
+    static void Main(string[] args)
+    {
+        PointStruct a1 = new PointStruct() { X = 1, Y = 2};
+        PointClass a2 = new PointClass() { X = 3, Y = 4};
+    }
+}

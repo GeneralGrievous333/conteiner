@@ -1,0 +1,108 @@
+﻿
+
+===== C:\Users\Grievous\source\repos\conteiner\.github\workflows\cd.yml =====
+
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/myapp
+            docker compose pull
+            docker compose up -d
+
+
+===== C:\Users\Grievous\source\repos\conteiner\.github\workflows\ci.yml =====
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Test
+        run: dotnet test --no-build -c Release
+
+
+===== C:\Users\Grievous\source\repos\conteiner\docker-compose.yml =====
+
+services:
+ conteiner:
+  build: .
+  image: conteiner:local
+  container_name: myapp-conteiner
+  restart: "no"
+
+
+===== C:\Users\Grievous\source\repos\conteiner\Dockerfile =====
+
+# BUILD 
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+WORKDIR /app
+
+
+COPY ["conteiner/conteiner.csproj", "conteiner/"]
+RUN dotnet restore "conteiner/conteiner.csproj"
+
+COPY . .
+
+RUN dotnet publish "conteiner/conteiner.csproj" \
+    -c Release \
+    -o /app/publish \
+    --no-restore \
+    /p:UseAppHost=false
+
+# RUNTIME
+FROM mcr.microsoft.com/dotnet/runtime:10.0-noble AS runtime
+WORKDIR /app
+
+RUN adduser --disabled-password --gecos "" appuser \
+    && chown -R appuser /app
+USER appuser
+
+COPY --from=build --chown=appuser /app/publish .
+
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+
+ENTRYPOINT ["dotnet", "conteiner.dll"]

@@ -2,7 +2,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 WORKDIR /app
 
-
 COPY ["conteiner/conteiner.csproj", "conteiner/"]
 RUN dotnet restore "conteiner/conteiner.csproj"
 
@@ -18,12 +17,10 @@ RUN dotnet publish "conteiner/conteiner.csproj" \
 FROM mcr.microsoft.com/dotnet/runtime:10.0-noble AS runtime
 WORKDIR /app
 
-RUN adduser --disabled-password --gecos "" appuser \
-    && chown -R appuser /app
-USER appuser
-
-COPY --from=build --chown=appuser /app/publish .
+COPY --from=build --chown=app:app /app/publish .
 
 ENV DOTNET_RUNNING_IN_CONTAINER=true
+
+USER app
 
 ENTRYPOINT ["dotnet", "conteiner.dll"]
